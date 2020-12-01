@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>输入网址</title>
+</head>
+<body>
+<form action=""{{ url_for('login') }}" method="post">
+    <table>
+        <tbody>
+            <tr>
+                <td>爬取网址：</td>
+                <td><input type="text" placeholder="请输入网址" name="web"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" value="确定"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
