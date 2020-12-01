@@ -1,0 +1,7 @@
+ssh root@47.101.35.73
+Qq469406974
+docker ps
+docker exec -it ad8aecfc5eb6 mongo admin
+use admin
+db.createUser({user: "admin", pwd: "admin", roles:[{role:"userAdminAnyDatabase", db : "admin"}]});
+db.createUser({ user: 'swen', pwd: 'swen123456', roles: [{role: "readWrite", db: "app"}]});

@@ -5,6 +5,17 @@ Created on Wed Nov 25 11:05:46 2020
 @author: 小熊背包买吗
 """
 
+import pymongo
+MONGO_USER = "swen"
+MONGO_PSW = "swen123456"
+MONGO_HOST = "47.101.35.73"
+MONGO_PORT = "27017"
+
+myclient = pymongo.MongoClient('mongodb://{0}:{1}@{2}:{3}'.format(MONGO_USER, MONGO_PSW, MONGO_HOST, MONGO_PORT))
+mydb = myclient.app
+mycol = mydb.danmu
+
+import json
 import pandas as pd
 import requests
 import re  #正则表达式
@@ -167,7 +178,12 @@ if __name__ == '__main__':
     #存储路径
     #path = 'C:\python saved files\output\B站弹幕.csv'
     danmu_info=main_func(web_bv)
-    print(danmu_info)
+    mycol.insert_many(json.loads(danmu_info.T.to_json()).values())
+    # mycol.insert_one({'test':1, "age":2})
+    # print(danmu_info)
+    mycol = mydb.danmu
+    for x in mycol.find():
+        print(x)
 
 
 
