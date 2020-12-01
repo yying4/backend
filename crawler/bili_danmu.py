@@ -8,7 +8,7 @@ Created on Wed Nov 25 11:05:46 2020
 import pandas as pd
 import requests
 import re  #正则表达式
-import csv
+#import csv
 import time
 import json
 
@@ -144,7 +144,7 @@ def main_func(web_bv):
     bvid_list = re.findall(result_bv,web_bv)
     danmu_info=[]
     #表头
-    #header = ['BV_id','dm_time','send_date','send_month','send_time','text','user_id']
+    header = ['BV_id','dm_time','send_date','send_month','send_time','text','user_id']
     #header = ['BV号','弹幕对应的出现时间','发送日','发送月份','发送时间','弹幕内容','发送人id']
     #save_header_csv(header,path)
     
@@ -157,7 +157,8 @@ def main_func(web_bv):
             date_str = str(date)[:10]
             url = 'https://api.bilibili.com/x/v2/dm/history?type=1&oid=' + oid + '&date=' + date_str
             danmu_info = single_crawler(url,date_str,bvid,danmu_info)
-    return danmu_info
+    danmu_if=pd.DataFrame(danmu_info,columns=header)
+    return danmu_if
 
 
 if __name__ == '__main__':
