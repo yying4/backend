@@ -39,16 +39,17 @@ def get_date(url_bv):
 def get_oid(bvid):
     url = 'https://api.bilibili.com/x/player/pagelist?bvid=' + bvid + '&jsonp=jsonp'
     res = requests.get(url).text
-    time.sleep(2)
+    time.sleep(1)
     json_dict = json.loads(res)
     return json_dict["data"][0]["cid"]
 
 
 #2.模拟浏览器发送请求和接收响应
-def single_crawler(url,path,date_str,bvid):
+def single_crawler(url,date_str,bvid,danmu_info):
     html_doc = get_html_text(url)
-    send_info=parse(html_doc,bvid)
-    save_csv(send_info,path,date_str)
+    send_info = parse(html_doc,bvid)
+    danmu_info = save_single_data(send_info,date_str,danmu_info)
+    return danmu_info
 
 
 def get_html_text(url):
@@ -76,19 +77,27 @@ def parse(html_doc,bvid):
 
 
 #4.保存数据
-def save_header_csv(header,path):
-    with open(path,'a',newline='',encoding='utf-8-sig') as f:
-        writer = csv.writer(f)
-        writer.writerow(header)
+def save_single_data(send_info,date_str,danmu_info):
+    for row in send_info:
+        if row[2] == date_str:
+            danmu_info.append(row)
+        else:
+            break
+    return danmu_info
 
-def save_csv(send_info,path,date_str):
-    with open(path,'a',newline='',encoding='utf-8-sig') as f:
-        writer = csv.writer(f)
-        for row in send_info:
-            if row[2] == date_str:
-                writer.writerow(row)
-            else:
-                break
+# def save_header_csv(header,path):
+#     with open(path,'a',newline='',encoding='utf-8-sig') as f:
+#         writer = csv.writer(f)
+#         writer.writerow(header)
+#
+# def save_csv(send_info,path,date_str):
+#     with open(path,'a',newline='',encoding='utf-8-sig') as f:
+#         writer = csv.writer(f)
+#         for row in send_info:
+#             if row[2] == date_str:
+#                 writer.writerow(row)
+#             else:
+#                 break
 
 
 #字段整理
@@ -126,17 +135,18 @@ def time_transform(seconds):
     return dm_time
 
 
-def main_func(web_bv,path):
+def main_func(web_bv):
     #当前时间
     timeArray = time.localtime(time.time())
     current_time = time.strftime("%Y-%m-%d", timeArray)
     #bv列表
     result_bv = re.compile('https://www.bilibili.com/video/BV(\w*)')
     bvid_list = re.findall(result_bv,web_bv)
+    danmu_info=[]
     #表头
     #header = ['BV_id','dm_time','send_date','send_month','send_time','text','user_id']
-    header = ['BV号','弹幕对应的出现时间','发送日','发送月份','发送时间','弹幕内容','发送人id']
-    save_header_csv(header,path)
+    #header = ['BV号','弹幕对应的出现时间','发送日','发送月份','发送时间','弹幕内容','发送人id']
+    #save_header_csv(header,path)
     
     for bvid in bvid_list:
         oid = str(get_oid(bvid))
@@ -146,15 +156,18 @@ def main_func(web_bv,path):
         for date in date_duration:
             date_str = str(date)[:10]
             url = 'https://api.bilibili.com/x/v2/dm/history?type=1&oid=' + oid + '&date=' + date_str
-            single_crawler(url,path,date_str,bvid)
+            danmu_info = single_crawler(url,date_str,bvid,danmu_info)
+    return danmu_info
 
 
 if __name__ == '__main__':
     #连接数据库，取出网址，整合成长字符串，存储在web_bv
     web_bv='https://www.bilibili.com/video/BV1ND4y1X7fh ,https://www.bilibili.com/video/BV1PT4y1c74Z?from=search&seid=2841731650331385722'
     #存储路径
-    path = 'C:\python saved files\output\B站弹幕.csv'
-    main_func(web_bv,path)
+    #path = 'C:\python saved files\output\B站弹幕.csv'
+    danmu_info=main_func(web_bv)
+    print(danmu_info)
+
 
 
 
