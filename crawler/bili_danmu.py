@@ -15,13 +15,13 @@ myclient = pymongo.MongoClient('mongodb://{0}:{1}@{2}:{3}'.format(MONGO_USER, MO
 mydb = myclient.app
 mycol = mydb.danmu
 
-import json
 import pandas as pd
 import requests
 import re  #正则表达式
 #import csv
 import time
 import json
+import db_mongo
 
 '''
 代码目前存在的问题：
@@ -31,7 +31,6 @@ import json
 4、代码语句有些冗余
 
 '''
-
 
 #1.url
 #url='https://api.bilibili.com/x/v2/dm/history?type=1&oid=226204073&date=2020-11-24'
@@ -172,13 +171,14 @@ def main_func(web_bv):
     return danmu_if
 
 
-if __name__ == '__main__':
+def bili_spyder(cid):
     #连接数据库，取出网址，整合成长字符串，存储在web_bv
-    web_bv='https://www.bilibili.com/video/BV1ND4y1X7fh ,https://www.bilibili.com/video/BV1PT4y1c74Z?from=search&seid=2841731650331385722'
-    #存储路径
-    #path = 'C:\python saved files\output\B站弹幕.csv'
-    danmu_info=main_func(web_bv)
-    mycol.insert_many(json.loads(danmu_info.T.to_json()).values())
+    web_bv = db_mongo.html_str(cid)
+    #web_bv='https://www.bilibili.com/video/BV1ND4y1X7fh ,https://www.bilibili.com/video/BV1PT4y1c74Z?from=search&seid=2841731650331385722'
+    danmu_info = main_func(web_bv)
+    mydb = db_mongo.connect_mongo().app
+    mycol = mydb.danmu
+    mycol.insert_many(json.loads(danmu_info.T.to_json()).values())  #爬取结果存进数据库中
     # mycol.insert_one({'test':1, "age":2})
     # print(danmu_info)
     mycol = mydb.danmu

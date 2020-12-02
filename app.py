@@ -4,12 +4,12 @@ from flask import Flask,render_template,request,url_for
 #from flask_sqlalchemy import SQLAlchemy
 #import config
 import db_mongo
+import uuid
+import crawler.tt_craw as craw  #bili_danmu
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED  #多线程
 
 app = Flask(__name__)
 #app.config.form_object(config)
-#db=SQLAlchemy(app)
-
-
 
 #@app.route是一个装饰器，作用是：做一个url和视图函数的映射
 #创建主页路由
@@ -21,50 +21,33 @@ def index():
     #print (url_for('my_list'))  #返回的是函数对应的网址
     return render_template('index.html',**context)  #模板放在templates文件夹下
 
-#url传参数
-@app.route('/article/<id>')
-def article(id):
-    return u'您请求的参数是：%s'% id
 
-#url反转
-@app.route('/list/')
-def my_list():
-    return 'list'
-
-#默认视图函数，只能采用get请求
-#如果你想采用post请求，那么要写明
+#默认视图函数，只能采用get请求；如果想采用post请求，要写明
 @app.route('/login/',methods=['GET','POST'])
 def login():
-    if request.method =='GET':
+    if request.method == 'GET':
         return render_template('login.html')
     else:
-        website=request.form.get('web')
-        db_mongo.insert_website(website)
-        print ('website:',website)
-        return "请稍等……"
+        website = request.form.get('web')  #输入的网址
+        cid = str(uuid.uuid1())  #查询区分的id
+        db_mongo.insert_websites(website, cid)  #存入数据库
+        return "正在爬取中，请稍等。5分钟后请跳转'{}'，根据本次的cid：'{}'查询".format('127.0.0.1/downloap',cid)
+
+with ThreadPoolExecutor(max_workers=3) as t:
+    obj1 = t.submit(craw.first_out, 1)
+    obj2 = t.submit(craw.test_sec, cid)
+    all_task = [obj1, obj2]
+    wait(all_task, return_when=FIRST_COMPLETED)
+    print('finish')
+
+        #craw.main_func(cid)
+        #print ('website:',website)
 
 
 if __name__=='__main__':
     #启动一个应用服务器，来接受用户的的请求
     app.run(port=8088,host='127.0.0.1',debug=True)  #debug在正式上线时要去掉
 
-
-
-
-
-
-#创建注册页面路由
-#@app.route('/register',methods=['GET','POST'])
-#def register():
-#    if request.method == 'GET':
- #       return render_template('login.html')
-  #  else:
-   #     uname =request.form['username']
-    #    email=request.form['email']
-     #   uurl=request.form['url']
-      #  upwd=request.form['password']
-       # savetosql(uname,email,uurl,upwd)
-        #return return render_template('login.html')
 
 
 
