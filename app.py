@@ -5,8 +5,11 @@ from flask import Flask,render_template,request,url_for
 #import config
 import db_mongo
 import uuid
+import time
 import crawler.tt_craw as craw  #bili_danmu
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED  #多线程
+executor = ThreadPoolExecutor(2)
+
 
 app = Flask(__name__)
 #app.config.form_object(config)
@@ -29,16 +32,20 @@ def login():
         return render_template('login.html')
     else:
         website = request.form.get('web')  #输入的网址
-        cid = str(uuid.uuid1())  #查询区分的id
+        #cid = str(uuid.uuid1())  #查询区分的id
+        ct = time.localtime(time.time())
+        cid = str(time.strftime("%Y-%m-%d %H:%M:%S", ct))
+        print(cid)
         db_mongo.insert_websites(website, cid)  #存入数据库
-        return "正在爬取中，请稍等。5分钟后请跳转'{}'，根据本次的cid：'{}'查询".format('127.0.0.1/downloap',cid)
+        executor.submit(craw.test_sec, 'hello')  #craw.bili_spyder(cid)
+        return "正在爬取中，请稍等。5分钟后请跳转'{}'，根据本次的查询时间：'{}'查询".format('127.0.0.1/downloap',cid)
 
-with ThreadPoolExecutor(max_workers=3) as t:
-    obj1 = t.submit(craw.first_out, 1)
-    obj2 = t.submit(craw.test_sec, cid)
-    all_task = [obj1, obj2]
-    wait(all_task, return_when=FIRST_COMPLETED)
-    print('finish')
+        # with ThreadPoolExecutor(max_workers=3) as t:
+        #     obj1 = t.submit(craw.first_out, 1)
+        #     obj2 = t.submit(craw.test_sec, cid)
+        #     all_task = [obj1, obj2]
+        #     wait(all_task, return_when=FIRST_COMPLETED)
+        #     print('finish')
 
         #craw.main_func(cid)
         #print ('website:',website)

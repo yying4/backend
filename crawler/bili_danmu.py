@@ -1,19 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 25 11:05:46 2020
-
-@author: 小熊背包买吗
 """
-
-import pymongo
-MONGO_USER = "swen"
-MONGO_PSW = "swen123456"
-MONGO_HOST = "47.101.35.73"
-MONGO_PORT = "27017"
-
-myclient = pymongo.MongoClient('mongodb://{0}:{1}@{2}:{3}'.format(MONGO_USER, MONGO_PSW, MONGO_HOST, MONGO_PORT))
-mydb = myclient.app
-mycol = mydb.danmu
 
 import pandas as pd
 import requests
@@ -27,9 +15,7 @@ import db_mongo
 代码目前存在的问题：
 1、不清内存的情况下，再次运行会警告
 2、消耗时间较长，设置了time.sleep
-3、若二次运行，不删除前文档的情况下，会继续添加到前文档中
-4、代码语句有些冗余
-
+3、代码语句有些冗余
 '''
 
 #1.url
@@ -55,9 +41,9 @@ def get_oid(bvid):
 
 
 #2.模拟浏览器发送请求和接收响应
-def single_crawler(url,date_str,bvid,danmu_info):
+def single_crawler(url,date_str,bvid,danmu_info,cid):
     html_doc = get_html_text(url)
-    send_info = parse(html_doc,bvid)
+    send_info = parse(html_doc,bvid,cid)
     danmu_info = save_single_data(send_info,date_str,danmu_info)
     return danmu_info
 
@@ -75,21 +61,21 @@ def get_html_text(url):
     
 
 #3.解析网页内容  弹幕
-def parse(html_doc,bvid):
+def parse(html_doc,bvid,cid):
     #弹幕内容
     res = re.compile('<d.*?>(.*?)</d>')
     danmu = re.findall(res,html_doc)
     #弹幕其他信息
     result = re.compile('<d p="(.*?)">')
     send = re.findall(result,html_doc)
-    send_info = field_transform(danmu,send,bvid)
+    send_info = field_transform(danmu,send,bvid,cid)
     return send_info
 
 
 #4.保存数据
 def save_single_data(send_info,date_str,danmu_info):
     for row in send_info:
-        if row[2] == date_str:
+        if row[3] == date_str:
             danmu_info.append(row)
         else:
             break
@@ -111,7 +97,7 @@ def save_single_data(send_info,date_str,danmu_info):
 
 
 #字段整理
-def field_transform(danmu,send,bvid):
+def field_transform(danmu,send,bvid,cid):
     send_info=[]
     if len(danmu)==len(send):
         for i in range(len(danmu)):
@@ -121,7 +107,7 @@ def field_transform(danmu,send,bvid):
             send_time,send_date,send_month = date_transform(int(sp[4]))
             dm_time = time_transform(float(sp[0]))
             text = danmu[i]
-            send_single = [bv,dm_time,send_date,send_month,send_time,text,user_id]
+            send_single = [cid,bv,dm_time,send_date,send_month,send_time,text,user_id]
             send_info.append(send_single)
         return send_info
     else:
@@ -145,7 +131,7 @@ def time_transform(seconds):
     return dm_time
 
 
-def main_func(web_bv):
+def main_func(web_bv,cid):
     #当前时间
     timeArray = time.localtime(time.time())
     current_time = time.strftime("%Y-%m-%d", timeArray)
@@ -154,8 +140,8 @@ def main_func(web_bv):
     bvid_list = re.findall(result_bv,web_bv)
     danmu_info=[]
     #表头
-    header = ['BV_id','dm_time','send_date','send_month','send_time','text','user_id']
-    #header = ['BV号','弹幕对应的出现时间','发送日','发送月份','发送时间','弹幕内容','发送人id']
+    header = ['query_time','BV_id','dm_time','send_date','send_month','send_time','text','user_id']
+    #header = ['查询时间','BV号','弹幕对应的出现时间','发送日','发送月份','发送时间','弹幕内容','发送人id']
     #save_header_csv(header,path)
     
     for bvid in bvid_list:
@@ -166,7 +152,7 @@ def main_func(web_bv):
         for date in date_duration:
             date_str = str(date)[:10]
             url = 'https://api.bilibili.com/x/v2/dm/history?type=1&oid=' + oid + '&date=' + date_str
-            danmu_info = single_crawler(url,date_str,bvid,danmu_info)
+            danmu_info = single_crawler(url,date_str,bvid,danmu_info,cid)
     danmu_if=pd.DataFrame(danmu_info,columns=header)
     return danmu_if
 
@@ -175,18 +161,19 @@ def bili_spyder(cid):
     #连接数据库，取出网址，整合成长字符串，存储在web_bv
     web_bv = db_mongo.html_str(cid)
     #web_bv='https://www.bilibili.com/video/BV1ND4y1X7fh ,https://www.bilibili.com/video/BV1PT4y1c74Z?from=search&seid=2841731650331385722'
-    danmu_info = main_func(web_bv)
+    danmu_info = main_func(web_bv,cid)
     mydb = db_mongo.connect_mongo().app
     mycol = mydb.danmu
     mycol.insert_many(json.loads(danmu_info.T.to_json()).values())  #爬取结果存进数据库中
     # mycol.insert_one({'test':1, "age":2})
     # print(danmu_info)
     mycol = mydb.danmu
-    for x in mycol.find():
+    for x in mycol.find({'query_time':'2020-12-02 12:51:46'}):
         print(x)
 
-
-
+#cid='2020-12-02 12:51:46'
+#对应的窗口输入为：https://www.bilibili.com/video/BV13y4y1S7nJ,https://www.bilibili.com/video/BV1ry4y167ib,https://www.bilibili.com/video/BV1yz4y1o7uT
+#bili_spyder(cid)
 
 
 '''
