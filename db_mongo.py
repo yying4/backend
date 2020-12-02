@@ -1,5 +1,5 @@
 import pymongo
-
+import pandas as pd
 #线上连接
 def connect_mongo():
     MONGO_USER = "swen"
@@ -11,7 +11,7 @@ def connect_mongo():
     #mydb = myclient.app
     #mycol = mydb.danmu
 
-#从websites表中将网址取出
+#1-1、根据cid从websites表中将网址取出
 def find_websites(cid):
     client = connect_mongo()  #连接数据库
     db = client.app  # 数据库名为app
@@ -20,7 +20,7 @@ def find_websites(cid):
     client.close()  #关闭连接
     return result
 
-#根据cid取出数据
+#1-2、如果有多条web，将他们合并取出，然后被bili_danmu调用爬取
 def html_str(cid):
     webs=find_websites(cid)
     webs_str=''
@@ -30,7 +30,7 @@ def html_str(cid):
     print('从数据库中取出的字符串为',webs_str)
     return webs_str
 
-#插入数据到websites表中
+#app：插入数据到websites表中
 def insert_websites(website ,cid):
     client = connect_mongo()  #连接数据库
     db = client.app
@@ -41,6 +41,24 @@ def insert_websites(website ,cid):
     return result
 
 #insert_website('www.hah.com','234567654')
+
+#app：2-1根据cid从danmu表中取出相应数据
+def output_danmu(cid):
+    client = connect_mongo()  #连接数据库
+    db = client.app  # 数据库名为app
+    collections=db.danmu  #表名danmu
+    result=collections.find({'query_time':cid})  #获取所有数据
+    client.close()  #关闭连接
+    return result
+
+#2-2 数据转换
+def trans_dm(result):
+    header = ['query_time', 'BV_id', 'dm_time', 'send_date', 'send_month', 'send_time', 'text', 'user_id']
+    row_df = pd.DataFrame(columns=header)
+    for row in result:
+        del row['_id']
+        row_df = row_df.append(row, ignore_index=True)
+    return row_df
 
 
 #本地
