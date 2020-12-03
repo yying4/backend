@@ -7,6 +7,8 @@ import db_mongo
 import json
 import time
 import crawler.tt_craw as craw  #bili_danmu
+import jsonify
+import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED  #多线程
 executor = ThreadPoolExecutor(2)
 
@@ -39,7 +41,6 @@ def login():
         website = request.form.get('web')  #输入的网址
         #cid = str(uuid.uuid1())  #查询区分的id
         ct = time.localtime(time.time())
-        global cid
         cid = str(time.strftime("%Y-%m-%d %H:%M:%S", ct))
         print(cid)
         db_mongo.insert_websites(website, cid)  #存入数据库
@@ -48,11 +49,18 @@ def login():
 
 
 
-@app.route('/output')
-def dm_output():
-    result = db_mongo.output_danmu(cid)
-    dic_danmu = db_mongo.trans_dm(result)
-    return json.dumps(dic_danmu)
+@app.route('/output/',methods=['GET','POST'])
+def output():
+    if request.method == 'GET':
+        return render_template('output.html')
+    else:
+        cid = str(request.form.get('query_time'))
+        result = db_mongo.output_danmu(cid)
+        dic_danmu = db_mongo.trans_dm(result)
+        dic_danmu=dic_danmu.to_dict('records')
+        #re=pd.read_json("test.json", encoding="utf-8", orient='records')
+        re = json.dumps(dic_danmu,ensure_ascii=False)
+        return re#json.dumps
 
 
 # @app.route(apiPrefix + 'getStaffList/<int:job>')
@@ -66,7 +74,7 @@ def dm_output():
 
 if __name__=='__main__':
     #启动一个应用服务器，来接受用户的的请求
-    app.run(port=8088,host='127.0.0.1',debug=True)  #debug在正式上线时要去掉
+    app.run(port=5000,host='127.0.0.1',debug=True)  #debug在正式上线时要去掉
 
 
 
