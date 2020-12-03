@@ -2,9 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>$Title$</title>
+    <title>结果输出</title>
 </head>
 <body>
-$END$
+<form action=""{{ url_for('output') }}" method="post">
+    <table>
+        <tbody>
+            <tr>
+                <td>请输入查询时间：</td>
+                <td><input type="text" placeholder="请输入" name="query_time"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" value="确定"></td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>
