@@ -9,6 +9,7 @@ import crawler.bili_danmu as craw
 from concurrent.futures import ThreadPoolExecutor  #多线程
 executor = ThreadPoolExecutor(2)
 from flask_cors import CORS, cross_origin
+from gevent.pywsgi import WSGIServer
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -58,10 +59,10 @@ def output():
 if __name__=='__main__':
     #启动一个应用服务器，来接受用户的的请求
     #app.run(port=5000,host='127.0.0.1',debug=True)  #debug在正式上线时要去掉
-    app.run(port=5000, host='0.0.0.0')  # debug在正式上线时要去掉
-
-
-
+    #app.run(port=5000, host='0.0.0.0')  # debug在正式上线时要去掉
+    server = WSGIServer(('0.0.0.0', 5000), app)
+    server.serve_forever()
+    app.run()
 
 
 
