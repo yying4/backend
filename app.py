@@ -57,7 +57,8 @@ def output():
 
 if __name__=='__main__':
     #启动一个应用服务器，来接受用户的的请求
-    app.run(port=5000,host='127.0.0.1',debug=True)  #debug在正式上线时要去掉
+    #app.run(port=5000,host='127.0.0.1',debug=True)  #debug在正式上线时要去掉
+    app.run(port=5000, host='0.0.0.0')  # debug在正式上线时要去掉
 
 
 
