@@ -9,8 +9,8 @@ Flask-Cors         3.0.9
 ## 部署步骤
 1 打开pycharm终端
 2 输入 
->>> set FLASK_APP=app.py
->>> flask run
+* set FLASK_APP=app.py
+* flask run
 
 ## 目录结构描述
 Readme.md                   //介绍文档
