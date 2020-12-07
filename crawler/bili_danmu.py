@@ -166,7 +166,6 @@ def bili_spyder(cid):
     mycol = mydb.danmu
     mycol.insert_many(json.loads(danmu_info.T.to_json()).values())  #爬取结果存进数据库中
     # mycol.insert_one({'test':1, "age":2})
-    # print(danmu_info)
     mycol = mydb.danmu
     for x in mycol.find({'query_time':'2020-12-02 12:51:46'}):
         print(x)
