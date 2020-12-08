@@ -12,7 +12,16 @@ from flask_cors import CORS, cross_origin
 from gevent.pywsgi import WSGIServer
 
 app = Flask(__name__)
-cors = CORS(app)
+config = {
+  'ORIGINS': [
+    'http://localhost:3000',
+    'http://127.0.0.1:5000',
+  ],
+
+  'SECRET_KEY': '...'
+}
+CORS(app, resources={r'/*': {'origins': config['ORIGINS']}}, supports_credentials=True)
+
 
 #@app.route是一个装饰器，作用是：做一个url和视图函数的映射，URL和函数绑定，前端/浏览器访问某个url，就会调用这个函数。
 #创建主页路由
@@ -59,7 +68,7 @@ def output():
 if __name__=='__main__':
     #启动一个应用服务器，来接受用户的的请求
     #app.run(port=5000,host='127.0.0.1',debug=True)  #debug在正式上线时要去掉
-    #app.run(port=5000, host='0.0.0.0')  # debug在正式上线时要去掉
+    #app.run(port=5000, host='0.0.0.0')  # 没用WSGI，其他网络登陆不了
     server = WSGIServer(('0.0.0.0', 5000), app)
     server.serve_forever()
     app.run()
