@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 25 11:05:46 2020
-"""
+#encoding：utf-8
+
 
 import pandas as pd
 import requests
@@ -179,9 +178,11 @@ url = 'https://api.bilibili.com/x/v2/dm/history?type=1&oid=226204073&date=2020-1
 bvid=bvid_list[0]
 
 https://www.bilibili.com/video/BV1x54y1e7zf
+2021-01-06 17:11:16
 https://api.bilibili.com/x/v2/dm/history?type=1&oid=258722895&date=2020-11-24
 https://api.bilibili.com/x/v2/dm/history?type=1&oid=226204073&date=2020-11-24
 https://www.bilibili.com/video/BV1ND4y1X7fh
+2021-01-06 17:42:59
 '''
 
 

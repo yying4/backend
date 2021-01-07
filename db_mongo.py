@@ -1,10 +1,13 @@
+#encoding：utf-8
+
 import pymongo
 import pandas as pd
+import json
 #线上连接
 def connect_mongo():
-    MONGO_USER = "swen"
-    MONGO_PSW = "swen123456"
-    MONGO_HOST = "47.101.35.73"
+    MONGO_USER = "hey"  #"swen"
+    MONGO_PSW = "233333"  #"swen123456"
+    MONGO_HOST = "127.0.0.1"  #"47.101.35.73"
     MONGO_PORT = "27017"
     myclient = pymongo.MongoClient('mongodb://{0}:{1}@{2}:{3}'.format(MONGO_USER, MONGO_PSW, MONGO_HOST, MONGO_PORT))
     return myclient
@@ -51,13 +54,31 @@ def output_danmu(cid):
     client.close()  #关闭连接
     return result
 
-#2-2 数据转换
+#2-2-1 数据转换json
 def trans_dm(result):
     header = ['query_time', 'BV_id', 'dm_time', 'send_date', 'send_month', 'send_time', 'text', 'user_id']
     row_df = pd.DataFrame(columns=header)
     for row in result:
         del row['_id']
         row_df = row_df.append(row, ignore_index=True)
+    dic_danmu = row_df.to_dict('records')
+    re = json.dumps(dic_danmu, ensure_ascii=False)
+    return re
+
+#2-2-2 数据转换
+def trans_dm2(result):
+    #header = ['query_time', 'BV_id', 'dm_time', 'send_date', 'send_month', 'send_time', 'text', 'user_id']
+    #row_df = pd.DataFrame(columns=header)
+    row_df = {}
+    i=0
+    for row in result:
+        i+=1
+        del row['_id']
+        row_df[i] = row
+        #row_df = row_df.append(row, ignore_index=True)
+        #print(row_df)
+    #df_json = row_df.to_json(orient="records", force_ascii=False)
+    #print(df_json.dtype)
     return row_df
 
 

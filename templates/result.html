@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Result</title>
+</head>
+<body>
+<table border="1xp">
+    {% for f in results %}
+        <tr>
+            <td>{{ results[f]['query_time'] }}</td>
+            <td>{{ results[f]['BV_id'] }}</td>
+            <td>{{ results[f]['dm_time'] }}</td>
+            <td>{{ results[f]['send_date'] }}</td>
+            <td>{{ results[f]['send_month'] }}</td>
+            <td>{{ results[f]['send_time'] }}</td>
+            <td>{{ results[f]['text'] }}</td>
+            <td>{{ results[f]['user_id'] }}</td>
+        </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

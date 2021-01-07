@@ -10,6 +10,8 @@ from concurrent.futures import ThreadPoolExecutor  #多线程
 executor = ThreadPoolExecutor(2)
 from flask_cors import CORS, cross_origin
 from gevent.pywsgi import WSGIServer
+from urllib import parse
+import pandas as pd
 
 app = Flask(__name__)
 CORS(app, resources={r'/*': {'origins': '*'}}, supports_credentials=True)
@@ -35,21 +37,21 @@ craw.test_sec改成craw.bili_spyder
 def login():
     app.logger.info(request.method)
     print('调用了这边的login呢')
-    #return 'hhhhhh'
     if request.method == 'GET':
         return render_template('login.html')
     else:
         web_b = request.get_data()
-        web_str = web_b.decode('UTF-8')
-        website = web_str[12:-2]
+        web_s = web_b.decode('UTF-8')
+        web_str = parse.unquote(web_s)
+        website = web_str[4:]
         print(website)
         #website = request.form.get('web')  #输入的网址
         ct = time.localtime(time.time())
         cid = str(time.strftime("%Y-%m-%d %H:%M:%S", ct))
         db_mongo.insert_websites(website, cid)  #存入数据库
         executor.submit(craw.bili_spyder, cid)  #craw.bili_spyder(cid)
-        return cid
-        #return "正在爬取中，请稍等。5分钟后请打开网页'{}'，输入本次的查询时间：'{}'查询".format('127.0.0.1:5000/output/',cid)
+        #return cid
+        return "正在爬取中，请稍等。5分钟后请打开网页'{}'，输入本次的查询时间：'{}'查询".format('106.14.78.247:5000/output/',cid)
 
 
 @app.route('/output/',methods=['GET','POST'])
@@ -59,11 +61,12 @@ def output():
     else:
         cid = str(request.form.get('query_time'))
         result = db_mongo.output_danmu(cid)
-        dic_danmu = db_mongo.trans_dm(result)
-        dic_danmu=dic_danmu.to_dict('records')
+        re = db_mongo.trans_dm2(result)
+        return render_template('result.html',results = re)
+        #转移到db_mongo.py了：dic_danmu=dic_danmu.to_dict('records')
         #re=pd.read_json("test.json", encoding="utf-8", orient='records')
-        re = json.dumps(dic_danmu,ensure_ascii=False)
-        return re#json.dumps
+        #转移到db_mongo.py了：re = json.dumps(dic_danmu,ensure_ascii=False)
+        #return re_str#json.dumps
 
 
 if __name__=='__main__':
