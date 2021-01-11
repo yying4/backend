@@ -36,7 +36,7 @@ craw.test_sec改成craw.bili_spyder
 @cross_origin(origins='*')
 def login():
     app.logger.info(request.method)
-    print('调用了这边的login呢')
+    print('Someone想要爬取网页')
     if request.method == 'GET':
         return render_template('login.html')
     else:
@@ -44,19 +44,21 @@ def login():
         web_s = web_b.decode('UTF-8')
         web_str = parse.unquote(web_s)
         website = web_str[4:]
-        print(website)
+        #print(website)
         #website = request.form.get('web')  #输入的网址
         ct = time.localtime(time.time())
         cid = str(time.strftime("%Y-%m-%d %H:%M:%S", ct))
         db_mongo.insert_websites(website, cid)  #存入数据库
         executor.submit(craw.bili_spyder, cid)  #craw.bili_spyder(cid)
         #return cid
+        print('Someone在{}开始爬取如下网页：{}'.format(cid, website))
         return "正在爬取中，请稍等。5分钟后请打开网页'{}'，输入本次的查询时间：'{}'查询".format('106.14.78.247:5000/output/',cid)
 
 
 @app.route('/output/',methods=['GET','POST'])
 def output():
     if request.method == 'GET':
+        print('刚刚那个人准备取结果了')
         return render_template('output.html')
     else:
         cid = str(request.form.get('query_time'))
